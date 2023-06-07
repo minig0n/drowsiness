@@ -143,7 +143,7 @@ while True:
 
                 data = EAR
 
-                p.plot(data*300)
+                p.plot(data*1000 - 500)
 
                 cv2.imshow("FRAME", frame)
                 if cv2.waitKey(1)&0xFF==ord("q"): 
