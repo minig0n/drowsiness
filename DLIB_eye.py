@@ -76,46 +76,55 @@ while True:
             y1 = face.top()
             x2 = face.right()
             y2 = face.bottom()
-            # cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 3)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 3)
                 
             shape = predictor(gray, face)
+
+            for n in range(0, 68):
+                x = shape.part(n).x
+                y = shape.part(n).y
+                cv2.circle(frame, (x, y), 4, (255, 0, 0), -1)
+
+            # for landmark in shape:
+            #     cv2.circle(frame, landmark, 4, (255, 0, 0), -1)
 
             # face_frame = frame[y1:y2, x1:x2]
             # face_frame = cv2.resize(face_frame, (640, 480))
 
-            right_eye = [[shape.part(36).x, shape.part(36).y],
-                        [shape.part(37).x, shape.part(37).y], 
-                        [shape.part(38).x, shape.part(38).y],
-                        [shape.part(39).x, shape.part(39).y],
-                        [shape.part(40).x, shape.part(40).y],
-                        [shape.part(41).x, shape.part(41).y]]
+            # right_eye = [[shape.part(36).x, shape.part(36).y],
+            #             [shape.part(37).x, shape.part(37).y], 
+            #             [shape.part(38).x, shape.part(38).y],
+            #             [shape.part(39).x, shape.part(39).y],
+            #             [shape.part(40).x, shape.part(40).y],
+            #             [shape.part(41).x, shape.part(41).y]]
             
-            left_eye = [[shape.part(42).x, shape.part(42).y],
-                        [shape.part(43).x, shape.part(43).y], 
-                        [shape.part(44).x, shape.part(44).y],
-                        [shape.part(45).x, shape.part(45).y],
-                        [shape.part(46).x, shape.part(46).y],
-                        [shape.part(47).x, shape.part(47).y]]
+            # left_eye = [[shape.part(42).x, shape.part(42).y],
+            #             [shape.part(43).x, shape.part(43).y], 
+            #             [shape.part(44).x, shape.part(44).y],
+            #             [shape.part(45).x, shape.part(45).y],
+            #             [shape.part(46).x, shape.part(46).y],
+            #             [shape.part(47).x, shape.part(47).y]]
             
             delta = int((shape.part(39).x - shape.part(36).x)/3)
             delta_y = int(1.5*delta)
-            left_eye_frame = img[(shape.part(40).y-delta_y):(shape.part(37).y+delta_y), (shape.part(36).x-delta):(shape.part(39).x+delta)]
+            # left_eye_frame = img[(shape.part(40).y-delta_y):(shape.part(37).y+delta_y), (shape.part(36).x-delta):(shape.part(39).x+delta)]
 
             # cv2.resize(face_frame, (640, 480), interpolation = cv2.INTER_AREA)
 
-            for landmark in right_eye:
-                cv2.circle(frame, landmark, 4, (255, 0, 0), -1)
+            # for landmark in right_eye:
+            #     cv2.circle(frame, landmark, 4, (255, 0, 0), -1)
 
-            for landmark in left_eye:
-                cv2.circle(frame, landmark, 4, (255, 0, 0), -1)
+            # for landmark in left_eye:
+            #     cv2.circle(frame, landmark, 4, (255, 0, 0), -1)
 
-            EAR = (eye_aspect_ratio(right_eye) + eye_aspect_ratio(left_eye))
+            # EAR = (eye_aspect_ratio(right_eye) + eye_aspect_ratio(left_eye))
 
-            data = EAR
+            # data = EAR
 
             # cv2.imshow("Drowsiness detection", frame)
             try:
-                cv2.imshow("Left eye", left_eye_frame)
+                # cv2.imshow("Left eye", left_eye_frame)
+                cv2.imshow("face", frame)
             except:
                 pass
             if cv2.waitKey(1)&0xFF==ord("q"): 

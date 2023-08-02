@@ -21,7 +21,9 @@ while True:
 
 	# grab the frame from the threaded video stream and resize it
 	# to have a maximum width of 400 pixels
-	ret, frame = vs.read()
+	ret, img = vs.read()
+	frame = img
+
 	if not ret:
 		continue
 
@@ -83,8 +85,15 @@ while True:
 	# if the `q` key was pressed, break from the loop
 	if key == ord("q"):
 		break
+
+	# if the `q` key was pressed, break from the loop
+	if key == ord("p"):
+		cv2.imwrite(f'img-{int(time.time())}.png', img[startY: endY, startX: endX])
+
 # do a bit of cleanup
 cv2.destroyAllWindows()
 vs.release()
+
+
 
 

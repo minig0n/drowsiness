@@ -34,7 +34,7 @@ while 1:
         count = 0
         
 
-    cv2.imshow('img',img)
+    cv2.imshow('img', img)
     if cv2.waitKey(1)&0xFF == ord("q"): 
         break
 

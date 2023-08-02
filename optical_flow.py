@@ -31,6 +31,9 @@ while(1):
         flow = cv2.calcOpticalFlowFarneback(prvs, next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
         # Compute magnite and angle of 2D vector
         mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
+        # mag = mag/5
+        # mag[mag < 0.2] = 0.0
+
         # Set image hue value according to the angle of optical flow
         hsv_mask[..., 0] = ang * 180 / np.pi / 2
         # Set value as per the normalized magnitude of optical flow
