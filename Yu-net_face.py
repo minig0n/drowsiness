@@ -41,7 +41,7 @@ while True:
     valid = False
     for face in faces:
         box = list(map(int, face[:4]))
-        print(box)
+        # print(box)
         color = (0, 0, 255)
         thickness = 2
         cv2.rectangle(image, box, color, thickness, cv2.LINE_AA)
