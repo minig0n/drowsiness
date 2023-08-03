@@ -29,7 +29,7 @@ while 1:
     count += 1
     if count == 20:
         end = time.time()
-        print(20/(end-start))
+        # print(20/(end-start))
         start = time.time()
         count = 0
         

@@ -21,6 +21,7 @@ delta = 0
 
 while True:
     result, image = capture.read()
+    
     # image = cv2.resize(image, (320, 320))
     if result is False:
         cv2.waitKey(0)

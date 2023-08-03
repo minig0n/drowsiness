@@ -5,6 +5,8 @@ import onnxruntime
 import os
 import time
 
+VIDEO = True
+VIDEO_PATH = 'videos/video1.mp4'
 
 def draw_axis(img, yaw, pitch, roll, tdx=None, tdy=None, size=100):
     # Referenced from HopeNet https://github.com/natanielruiz/deep-head-pose
@@ -60,8 +62,12 @@ whenet_output_names = [output.name for output in whenet.get_outputs()]
 
 ### VIDEO ###------------
 
-print("[INFO] starting video stream...")
-vs = cv2.VideoCapture(0)
+if not VIDEO:
+    print("[INFO] starting video stream...")
+    vs = cv2.VideoCapture(0)
+else:
+    print("[INFO] starting video...")
+    vs = cv2.VideoCapture(VIDEO_PATH)
 
 # fourcc = cv2.VideoWriter_fourcc(*'XVID')
 # videoWriter = cv2.VideoWriter('video.avi', fourcc, 20.0, (320, 260))
@@ -73,8 +79,12 @@ t1 = 0
 delta = 0
 while True:
     ret, img = vs.read()
-    frame = cv2.resize(img, (320, 260))
-    # frame = img
+    frame = img
+
+    if VIDEO:
+        frame = frame[:, frame.shape[0]:]
+
+    frame = cv2.resize(frame, (320, 320))
 
     if not ret:
         continue
