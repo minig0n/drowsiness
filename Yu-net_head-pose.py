@@ -173,7 +173,7 @@ while True:
 
     if delta != 0 and delta > 0.001:
         cv2.putText(frame, f"FPS: {round(1/delta)}", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
-            
+
 
     frame = cv2.resize(frame, (640, 480))
     cv2.imshow('test', frame)
