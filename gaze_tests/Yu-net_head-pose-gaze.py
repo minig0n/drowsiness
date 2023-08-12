@@ -7,7 +7,7 @@ import time
 
 # from iris_detection import IrisLocalizationModel
 
-VIDEO = False
+VIDEO = True
 VIDEO_PATH = 'videos/video1.mp4'
 
 def draw_axis(img, yaw, pitch, roll, tdx=None, tdy=None, size=100):

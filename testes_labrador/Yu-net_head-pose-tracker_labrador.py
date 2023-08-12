@@ -8,7 +8,12 @@ import time
 VIDEO = True
 VIDEO_PATH = 'videos/video1.mp4'
 
-TRACKER_FRAMES = 40  # zero if no tracker is used
+MEAN_FPS_VALUE = 40
+
+HEAD_POSE_ENABLED = False
+
+TRACKING_ENABLED = True
+TRACKER_FRAMES = 20
 
 TRACKER_ID = 4
 # 0 - 'BOOSTING'   - 15 FPS
@@ -18,8 +23,7 @@ TRACKER_ID = 4
 # 4 - 'MEDIANFLOW' - 45 FPS (menos preciso)
 # 5 - 'MOSSE'      - 45 FPS (TOP !!!)
 
-MEAN_FPS_VALUE = 20 
-
+DEBUG = False
 
 def draw_axis(img, yaw, pitch, roll, tdx=None, tdy=None, size=100):
     # Referenced from HopeNet https://github.com/natanielruiz/deep-head-pose
@@ -113,7 +117,10 @@ def create_tracker(id):
 
     return tracker
 
-create_tracker(TRACKER_ID)
+if TRACKING_ENABLED:
+    create_tracker(TRACKER_ID)
+else:
+    TRACKER_FRAMES = 0
 
 
 ### YU-Net ###-----------
@@ -192,15 +199,16 @@ while True:
             face = faces[0]
                 
             box = list(map(int, face[:4]))
-            print(f"face detected: {box}")
+            # print(f"face detected: {box}")
             
             confidence = "{:.2f}".format(face[-1])
             # landmarks = list(map(int, face[4:len(face)-1]))
             # landmarks = np.array_split(landmarks, len(landmarks) / 2)
 
             # INIT TRACKER
-            tracker = create_tracker(TRACKER_ID)
-            ok = tracker.init(frame, box)
+            if TRACKING_ENABLED:
+                tracker = create_tracker(TRACKER_ID)
+                ok = tracker.init(frame, box)
             # print(ok)
             # tracker.start_track(frame, box)
 
@@ -226,18 +234,23 @@ while True:
     ### WHENet head pose
     if len(box) > 0 and valid:
 
-        yaw, pitch, roll, tdx, tdy, size = head_pose(frame, box)
-        orientation = f'yaw: {int(yaw)}, pitch: {int(pitch)}, roll: {int(roll)}'
-        # print(orientation)
-        draw_axis(frame, yaw, pitch, roll, tdx, tdy, size)
+        if HEAD_POSE_ENABLED:
+            yaw, pitch, roll, tdx, tdy, size = head_pose(frame, box)
+            orientation = f'yaw: {int(yaw)}, pitch: {int(pitch)}, roll: {int(roll)}'
+            # print(orientation)
+            if DEBUG:
+                draw_axis(frame, yaw, pitch, roll, tdx, tdy, size)
+            else:
+                print(orientation)
 
-        ### Draw Face
-        cv2.rectangle(frame, box, (0, 0, 255), 2, cv2.LINE_AA)
-        # for landmark in landmarks:
-        #     cv2.circle(frame, landmark, 2, (0, 0, 255), -1, cv2.LINE_AA)
-        # position1 = (box[0], box[1] - 10)
-        # cv2.putText(frame, confidence, position1, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-        # cv2.putText(frame, orientation, (10, frame.shape[1]-20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
+        if DEBUG:
+            ### Draw Face
+            cv2.rectangle(frame, box, (0, 0, 255), 2, cv2.LINE_AA)
+            # for landmark in landmarks:
+            #     cv2.circle(frame, landmark, 2, (0, 0, 255), -1, cv2.LINE_AA)
+            position1 = (box[0], box[1] - 10)
+            cv2.putText(frame, confidence, position1, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
+            cv2.putText(frame, orientation, (10, frame.shape[1]-20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
 
     if valid:
         rate += 1
@@ -248,13 +261,16 @@ while True:
             rate = 0
 
     if delta != 0 and delta > 0.001:
-        cv2.putText(frame, f"FPS: {round(1/delta)}", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+        if DEBUG:
+            cv2.putText(frame, f"FPS: {round(1/delta)}", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+        else:
+            print(round(1/delta))
 
-
-    frame = cv2.resize(frame, (640, 480))
-    cv2.imshow('test', frame)
-    # videoWriter.write(frame)
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord("q"):
-        break
+    if DEBUG:
+        frame = cv2.resize(frame, (640, 480))
+        cv2.imshow('test', frame)
+        # videoWriter.write(frame)
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord("q"):
+            break
 
