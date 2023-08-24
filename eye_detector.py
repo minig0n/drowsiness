@@ -150,22 +150,22 @@ while True:
                     break
 
                 # # Add x and y to lists
-                # xs.append(dt.datetime.now().strftime('%M:%S.%f'))
-                # ys.append(data)
+                xs.append(dt.datetime.now().strftime('%M:%S.%f'))
+                ys.append(data)
 
-                # # Limit x and y lists to 50 items
-                # xs = xs[-80:]
-                # ys = ys[-80:]
+                # Limit x and y lists to 50 items
+                xs = xs[-80:]
+                ys = ys[-80:]
 
-                # # Draw x and y lists
-                # ax.clear()
-                # ax.plot(xs, ys)
+                # Draw x and y lists
+                ax.clear()
+                ax.plot(xs, ys)
 
-                # # Format plot
-                # plt.xticks(rotation=45, ha='right')
-                # plt.subplots_adjust(bottom=0.30)
-                # plt.title('EAR vs time')
-                # plt.ylabel('EAR')
+                # Format plot
+                plt.xticks(rotation=45, ha='right')
+                plt.subplots_adjust(bottom=0.30)
+                plt.title('EAR vs time')
+                plt.ylabel('EAR')
 
             #     # print(eye)
             
@@ -174,7 +174,7 @@ while True:
 
 # Set up plot to call animate() function periodically
 
-# import time
-# time.sleep(2)
-# ani = animation.FuncAnimation(fig, process_data, fargs=(xs, ys), interval=20)
-# plt.show(block=True)
+import time
+time.sleep(2)
+ani = animation.FuncAnimation(fig, process_data, fargs=(xs, ys), interval=20)
+plt.show(block=True)

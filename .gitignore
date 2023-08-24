@@ -1,0 +1,5 @@
+./lwhp/utils/*.pyc
+./lwhp/network/*.pyc
+./testes_labrador/utils/*.pyc
+./testes_labrador/network/*.pyc
+./videos/*

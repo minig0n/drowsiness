@@ -4,16 +4,22 @@ from math import cos, sin
 import onnxruntime
 import os
 import time
+from matplotlib import pyplot as plt 
+
+global y_axis, x_axis, t0
+y_axis = np.array([])
+x_axis = np.array([])
+
+ang_x_axis = np.array([])
+yaw_y_axis = np.array([])
+pitch_y_axis = np.array([])
+roll_y_axis = np.array([])
+
 
 VIDEO = True
-VIDEO_PATH = 'videos/video1.mp4'
+VIDEO_PATH = 'videos/video2.mp4'
 
-MEAN_FPS_VALUE = 40
-
-HEAD_POSE_ENABLED = True
-
-TRACKING_ENABLED = True
-TRACKER_FRAMES = 20
+TRACKER_FRAMES = 40  # zero if no tracker is used
 
 TRACKER_ID = 4
 # 0 - 'BOOSTING'   - 15 FPS
@@ -23,7 +29,8 @@ TRACKER_ID = 4
 # 4 - 'MEDIANFLOW' - 45 FPS (menos preciso)
 # 5 - 'MOSSE'      - 45 FPS (TOP !!!)
 
-DEBUG = True
+MEAN_FPS_VALUE = 20 
+
 
 def draw_axis(img, yaw, pitch, roll, tdx=None, tdy=None, size=100):
     # Referenced from HopeNet https://github.com/natanielruiz/deep-head-pose
@@ -117,10 +124,7 @@ def create_tracker(id):
 
     return tracker
 
-if TRACKING_ENABLED:
-    create_tracker(TRACKER_ID)
-else:
-    TRACKER_FRAMES = 0
+create_tracker(TRACKER_ID)
 
 
 ### YU-Net ###-----------
@@ -171,6 +175,25 @@ count = 0
 
 box = []
 
+t_init = time.time()
+
+
+def grab_frame(cap):
+    ret, frame = cap.read()
+    return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+#Initiate the two cameras
+cap1 = cv2.VideoCapture(0)
+
+#create two subplots
+ax1 = plt.subplot(1,1,1)
+# ax2 = plt.subplot(1,2,2)
+
+#create two image plots
+im1 = ax1.imshow(grab_frame(cap1))
+
+plt.ion()
+
 while True:
     ret, img = vs.read()
     frame = img
@@ -192,8 +215,6 @@ while True:
         _, faces = face_detector.detect(frame)
         faces = faces if faces is not None else []
 
-        print(faces)
-
         valid = False
         if len(faces) > 0:
             valid = True
@@ -201,16 +222,15 @@ while True:
             face = faces[0]
                 
             box = list(map(int, face[:4]))
-            # print(f"face detected: {box}")
+            print(f"face detected: {box}")
             
             confidence = "{:.2f}".format(face[-1])
             # landmarks = list(map(int, face[4:len(face)-1]))
             # landmarks = np.array_split(landmarks, len(landmarks) / 2)
 
             # INIT TRACKER
-            if TRACKING_ENABLED:
-                tracker = create_tracker(TRACKER_ID)
-                ok = tracker.init(frame, box)
+            tracker = create_tracker(TRACKER_ID)
+            ok = tracker.init(frame, box)
             # print(ok)
             # tracker.start_track(frame, box)
 
@@ -236,23 +256,24 @@ while True:
     ### WHENet head pose
     if len(box) > 0 and valid:
 
-        if HEAD_POSE_ENABLED:
-            yaw, pitch, roll, tdx, tdy, size = head_pose(frame, box)
-            orientation = f'yaw: {int(yaw)}, pitch: {int(pitch)}, roll: {int(roll)}'
-            # print(orientation)
-            if DEBUG:
-                draw_axis(frame, yaw, pitch, roll, tdx, tdy, size)
-            else:
-                print(orientation)
+        yaw, pitch, roll, tdx, tdy, size = head_pose(frame, box)
 
-        if DEBUG:
-            ### Draw Face
-            cv2.rectangle(frame, box, (0, 0, 255), 2, cv2.LINE_AA)
-            # for landmark in landmarks:
-            #     cv2.circle(frame, landmark, 2, (0, 0, 255), -1, cv2.LINE_AA)
-            position1 = (box[0], box[1] - 10)
-            cv2.putText(frame, confidence, position1, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-            cv2.putText(frame, orientation, (10, frame.shape[1]-20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
+        ang_x_axis = np.append(ang_x_axis, [time.time()-t_init])
+        yaw_y_axis = np.append(yaw_y_axis, [yaw])
+        pitch_y_axis = np.append(pitch_y_axis, [pitch])
+        roll_y_axis = np.append(roll_y_axis, [roll])
+
+        orientation = f'yaw: {int(yaw)}, pitch: {int(pitch)}, roll: {int(roll)}'
+        # print(orientation)
+        draw_axis(frame, yaw, pitch, roll, tdx, tdy, size)
+
+        ### Draw Face
+        cv2.rectangle(frame, box, (0, 0, 255), 2, cv2.LINE_AA)
+        # for landmark in landmarks:
+        #     cv2.circle(frame, landmark, 2, (0, 0, 255), -1, cv2.LINE_AA)
+        position1 = (box[0], box[1] - 10)
+        cv2.putText(frame, confidence, position1, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
+        cv2.putText(frame, orientation, (10, frame.shape[1]-20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
 
     if valid:
         rate += 1
@@ -263,16 +284,39 @@ while True:
             rate = 0
 
     if delta != 0 and delta > 0.001:
-        if DEBUG:
-            cv2.putText(frame, f"FPS: {round(1/delta)}", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
-        else:
-            print(round(1/delta))
+        cv2.putText(frame, f"FPS: {round(1/delta)}", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+        y_axis = np.append(y_axis, [round(1/delta)])
+        x_axis = np.append(x_axis, [time.time()-t_init])
 
-    if DEBUG:
-        frame = cv2.resize(frame, (640, 480))
-        cv2.imshow('test', frame)
-        # videoWriter.write(frame)
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord("q"):
-            break
+
+    frame = cv2.resize(frame, (640, 480))
+    # im1.set_data(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    # plt.pause(0.000001)
+    cv2.imshow('test', frame)
+    # # videoWriter.write(frame)
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord("q"):
+        break
+
+figure, axis = plt.subplots(4, 1, figsize=(10, 8))
+figure.tight_layout(pad=3.0)
+
+axis[0].plot(x_axis,y_axis)
+axis[0].set_title("FPS")
+axis[0].set_ylabel("fps count")
+
+axis[1].plot(ang_x_axis, yaw_y_axis)
+axis[1].set_title("Yaw")
+axis[1].set_ylabel("yaw (deg)")
+
+axis[2].plot(ang_x_axis, pitch_y_axis)
+axis[2].set_title("Pitch")
+axis[2].set_ylabel("pitch (deg)")
+
+axis[3].plot(ang_x_axis, roll_y_axis)
+axis[3].set_title("Roll")
+axis[3].set_xlabel("time")
+axis[3].set_ylabel("roll (deg)")
+
+plt.show()
 
